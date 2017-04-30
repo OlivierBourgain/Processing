@@ -5,13 +5,13 @@ PFont font;
  PFont fontJP;
 void setup() {
   size(1200, 900);
-  frameRate(20);
+  frameRate(30);
   font = loadFont("DroidSans-24.vlw");
   fontJP = loadFont("DroidSansJapanese-24.vlw");
   background(0);
   
   for(int i = 0; i < width /symbolSize; i++) {
-    Stream stream = new Stream(i * symbolSize, round(random(0, height)));
+    Stream stream = new Stream(i * symbolSize);
     streams.add(stream);
   }
 
@@ -26,16 +26,12 @@ public class Symbol {
   int x;
   int y;
   char value;
-  int speed;
   int switchInterval = round(random(10,50));
-  boolean highlight = false;
   
-  public Symbol(int x, int y, int speed, boolean highlight) {
+  public Symbol(int x, int y) {
     this.x = x;
     this.y = y;
     this.value = randomSymbol();
-    this.speed = speed;
-    this.highlight = highlight;
   }
   
   public char randomSymbol() {
@@ -49,40 +45,43 @@ public class Symbol {
       }
   }
   
-  public void render() {
+  public void render(boolean highlight) {
     if (highlight) fill(180,255,180);
     else fill(0, 255, 70, 150);
     textSize(symbolSize);
     if (this.value <= '9')    textFont(font);
     else textFont(fontJP);
-    text(this.value, this.x, this.y);
+    
+    pushMatrix();
+    scale(-1, 1); // Invert the X scale to display the char backward
+    text(this.value, -this.x, this.y);
+    popMatrix();
+    
     if (frameCount % switchInterval == 0)
       this.value = randomSymbol();
-    rain();
-  }
-  
-  public void rain() {
-    if (y >= height) y = 0;
-    this.y += speed;
   }
 }
 
 public class Stream {
-  int speed = round(random(5,22));
-  int nbSymbols = round(random(5, 35));
+  int nbSymbols = round(random(5, 20));
+  int tail = nbSymbols - 1; // last char displayed
   ArrayList<Symbol> symbols = new ArrayList<Symbol>();
 
-  
-  
-  public Stream(int x, int y) {
-    boolean first = (round(random(0, 2)) == 0);
-    for(int i = 0; i< nbSymbols; i++) {
-      symbols.add(new Symbol(x, y - i * symbolSize, speed, first));
-      first = false;
+  public Stream(int x) {
+    for(int i = 0; i < height / symbolSize; i++) {
+      symbols.add(new Symbol(x, i * symbolSize));
     }
+    this.tail = round(random(0, height / symbolSize));
   }
   
   public void render() {
-    for(Symbol symbol: symbols) symbol.render();
+  
+    for(int i = 0 ; i <= nbSymbols; i++) {
+      int idx = (tail + i) % symbols.size();
+      if (i == nbSymbols) symbols.get(idx).render(true);
+      symbols.get(idx).render(false);
+    }
+    tail++;
+    if (tail < 0) tail = symbols.size() - 1;
   }
 }
