@@ -56,5 +56,5 @@ void draw() {
       rect(x*scale + (scale -w)/2, y*scale + (scale - w) /2, w, w);
     }
   }
-  image(cam, 640, 0, 640, 480);
+  image(cam, cam.width, 0, cam.width, cam.height);
 }
